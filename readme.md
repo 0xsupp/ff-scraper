@@ -1,6 +1,6 @@
 # FF Scraper
 
-This project performs **web scraping** on the `https://ff.io/`. The data is stored in an accumulating JSON file.
+This project performs **web scraping** on the `https://ff.io/` website every 5 minutes to fetch recent transaction data, filtering only those with `USDC`, `USDT`, or `BTC` that exceed specific minimum values. The data is stored in an accumulating JSON file.
 
 ## 📌 Requirements
 
@@ -9,13 +9,18 @@ This project performs **web scraping** on the `https://ff.io/`. The data is stor
 
 ## 🔧 Installation
 
-1. **Create a virtual environment** (optional but recommended)
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/0xsupp/ff-scraper.git
+   cd ff-scraper
+   ```
+2. **Create a virtual environment** (optional but recommended)
    ```bash
    python -m venv venv
    source venv/bin/activate  # Linux/macOS
    venv\Scripts\activate     # Windows
    ```
-2. **Install dependencies**
+3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
@@ -26,7 +31,7 @@ To start the scraper:
 ```bash
 python main.py
 ```
-This will run every **5 minutes** and continuously append results to `recent_list.json`.
+This will run every **`UPDATE` seconds** and continuously append results to `recent_list.json`.
 
 ## 🛠 Configuration
 
@@ -34,6 +39,12 @@ You can modify these values inside `main.py`:
 ```python
 URL = 'https://ff.io/'
 FILE_PATH = 'recent_list.json'
+MIN_VALUES = {
+    "USDT": 100,
+    "USDC": 50,
+    "BTC": 5000
+}  # Minimum value per currency
+UPDATE = 30  # Scraping interval in seconds
 ```
 
 ## 📄 Output Format
@@ -42,15 +53,15 @@ The `recent_list.json` file will have the following format:
 ```json
 [
     {
-        "dir-com": "BTC",
+        "dir-from": "BTC",
         "dir-to": "USDT",
-        "coin-value": "1500 USDT",
+        "coin-value": 5500,
         "timestamp": "1740129932"
     },
     {
-        "dir-com": "ETH",
-        "dir-to": "USDC",
-        "coin-value": "2000 USDC",
+        "dir-from": "USDC",
+        "dir-to": "ETH",
+        "coin-value": 200,
         "timestamp": "1740130045"
     }
 ]
