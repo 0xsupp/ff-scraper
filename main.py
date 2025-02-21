@@ -3,29 +3,35 @@ from bs4 import BeautifulSoup
 import time
 import json
 
-# Configuració
+# Configuration
 URL = 'https://ff.io/'
 FILE_PATH = 'recent_list.json'
-MIN_VALUE = 1000  # Valor mínim per filtrar
+MIN_VALUES = {
+    "USDT": 100,
+    "USDC": 50,
+    "BTC": 5000
+}  # Minimum values per currency
+UPDATE = 30  # Interval in seconds
 
 def extract_value(text):
+    """Extracts the numerical value and currency from the given text."""
     parts = text.split()
     if len(parts) == 2:
         try:
-            value = float(parts[0])  # Convertim a número
-            currency = parts[1].upper()  # Convertim a majúscules
+            value = float(parts[0])  # Convert to a number
+            currency = parts[1].upper()  # Convert to uppercase
             return value, currency
         except ValueError:
             return None, None
     return None, None
 
 def scrape_recent_list():
+    """Scrapes the website and extracts relevant transaction data."""
     try:
-        # Fa la petició a la pàgina
+        # Send a request to the page
         response = requests.get(URL)
         response.raise_for_status() 
         soup = BeautifulSoup(response.text, 'html.parser')
-
 
         recent_list = soup.find(class_='recent-list')
 
@@ -44,7 +50,8 @@ def scrape_recent_list():
                 if coin_value_tag:
                     value, currency = extract_value(coin_value_tag.get_text(strip=True))
 
-                    if value and currency:
+                    # Check if `dir-from` exists in the dictionary and if the value exceeds the minimum threshold
+                    if currency in MIN_VALUES and value > MIN_VALUES[currency]:
                         item_data = {}
 
                         if dir_from:
@@ -70,16 +77,16 @@ def scrape_recent_list():
                 with open(FILE_PATH, 'w', encoding='utf-8') as file:
                     json.dump(existing_data, file, ensure_ascii=False, indent=4)
 
-                print(f"S'han afegit {len(filtered_items)} elements en {FILE_PATH}")
+                print(f"Added {len(filtered_items)} items to {FILE_PATH}")
             else:
-                print("No hi ha elements que compleixin el criteri.")
+                print("No items match the criteria.")
         else:
-            print("No s'ha trobat la classe 'recent-list'.")
+            print("Class 'recent-list' not found.")
 
     except requests.exceptions.RequestException as e:
-        print(f"Error en fer la petició: {e}")
+        print(f"Error while making the request: {e}")
 
 if __name__ == "__main__":
     while True:
-            scrape_recent_list()
-            time.sleep(3)  
+        scrape_recent_list()
+        time.sleep(UPDATE)  
